@@ -1,3 +1,5 @@
+from typing import Text
+from numpy.lib.function_base import vectorize
 from run_prepare_data import DatasetDevelopment
 from run_prepare_data import DataUtils
 from data_analysis import DataAnalysis
@@ -5,8 +7,9 @@ from text_preprocessing import TextPreprocessor
 from feature_engineering import FeatureEngineering
 from model_training import ModelTraining
 from evaluate import EvaluateModel
-import joblib 
+import joblib
 from path import Path
+
 
 def main():
     df = DataUtils.get_data(
@@ -50,4 +53,38 @@ def main():
     evaluate.plot_confusion_matrix(y_test, XGboostModel.predict(Final_Test))
     evaluate.plot_roc_curve(y_test, XGboostModel.predict_proba(Final_Test)[:, 1])
 
-    joblib.dump(XGboostModel, Path(r"C:\Users\ASUS\Videos\Ayush Singh Production Projects\SMS_Project\saved_models") / "XGboost_model.pkl")
+
+def predict(msg):
+
+    model = joblib.load(
+        Path(
+            r"C:\Users\ASUS\Videos\Ayush Singh Production Projects\SMS_Project\saved_models"
+        )
+        / "XGboost_model.pkl"
+    )
+    vectorizer = joblib.load(
+        Path(
+            r"C:\Users\ASUS\Videos\Ayush Singh Production Projects\SMS_Project\saved_models"
+        )
+        / "vectorizer.pkl"
+    )
+    test_vector = vectorizer.transform([msg])
+    data = pd.DataFrame(test_vector.toarray(), columns=vectorizer.get_feature_names())
+    data.head()
+
+    data["Processed_sms_message"] = msg
+    data["Processed_sms_message"]
+    Text = TextPreprocessor(n_jobs=-1)
+    data["Processed_sms_message"] = Text.transform(data["Processed_sms_message"])
+    data["Processed_sms_message"]
+
+    feature_engineering = FeatureEngineering(data)
+    df_new_added_features = feature_engineering.add_more_features(data)
+    df_new_added_features.shape
+    df_new_added_features.drop(["Processed_sms_message"], axis=1, inplace=True)
+
+    model.predict(df_new_added_features)
+
+
+if __name__ == "__main__":
+    main()
