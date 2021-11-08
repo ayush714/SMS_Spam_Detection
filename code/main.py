@@ -1,4 +1,5 @@
 from typing import Text
+from numpy import testing
 from numpy.lib.function_base import vectorize
 from run_prepare_data import DatasetDevelopment
 from run_prepare_data import DataUtils
@@ -9,6 +10,7 @@ from model_training import ModelTraining
 from evaluate import EvaluateModel
 import joblib
 from path import Path
+import pandas as pd
 
 
 def main():
@@ -22,9 +24,11 @@ def main():
     txtp = TextPreprocessor(n_jobs=-1)
     df["Processed_sms_message"] = txtp.transform(df["sms_message"])
 
+    df.head()
     feature_engineering = FeatureEngineering(df)
     feature_engineering.map_labels()
     df_new_added_features = feature_engineering.add_more_features(df)
+    df_new_added_features
 
     df_new_added_features["Number_of_characters_per_word"].fillna(
         df_new_added_features["Number_of_characters_per_word"].mean(), inplace=True
@@ -32,7 +36,7 @@ def main():
 
     data_dev = DatasetDevelopment(df_new_added_features)
     x_train, x_test, y_train, y_test = data_dev.divide_your_data()
-
+    x_train
     x_train.drop(["sms_message"], axis=1, inplace=True)
     x_test.drop(["sms_message"], axis=1, inplace=True)
 
@@ -45,8 +49,9 @@ def main():
     model_train = ModelTraining(Final_Training_data, y_train)
     # ============================================ XGboost Model =========================================
     XGboostModel = model_train.Xgboost_model(fine_tuning=False)
+    Final_Test
     predict = XGboostModel.predict(Final_Test)
-    predict
+    # check the unique values in predict
     # ============================================ XGboost Model =========================================
     evaluate = EvaluateModel(Final_Test, y_test, XGboostModel)
     evaluate.evaluate_model()
@@ -55,7 +60,6 @@ def main():
 
 
 def predict(msg):
-
     model = joblib.load(
         Path(
             r"C:\Users\ASUS\Videos\Ayush Singh Production Projects\SMS_Project\saved_models"
@@ -70,7 +74,6 @@ def predict(msg):
     )
     test_vector = vectorizer.transform([msg])
     data = pd.DataFrame(test_vector.toarray(), columns=vectorizer.get_feature_names())
-    data.head()
 
     data["Processed_sms_message"] = msg
     data["Processed_sms_message"]
@@ -83,8 +86,13 @@ def predict(msg):
     df_new_added_features.shape
     df_new_added_features.drop(["Processed_sms_message"], axis=1, inplace=True)
 
-    model.predict(df_new_added_features)
+    output = model.predict(df_new_added_features)
+    return output[0]
 
 
 if __name__ == "__main__":
-    main()
+    prediction = predict(
+        "Hi, I am Ayush. I am a student of B.Tech. in Computer Science and Engineering. I am looking for a job."
+    )
+
+    print(prediction)

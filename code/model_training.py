@@ -20,6 +20,7 @@ class ModelTraining:
         print("Training the model logistic regression model:- ")
         log_reg = LogisticRegression(max_iter=1000)
         log_reg.fit(self.x_train, self.y_train)
+        
         print("Completed training the model")
         return log_reg
 
@@ -69,6 +70,7 @@ class ModelTraining:
             xgb.fit(self.x_train, self.y_train)
             print("Completed training the model")
             return xgb
+
 
     def svm_model(self, fine_tuning=True): 
         if fine_tuning:  
@@ -152,3 +154,6 @@ class ModelTraining:
             knn.fit(self.x_train, self.y_train)
             print("Completed training the model")
             return knn
+
+
+
